@@ -8,13 +8,12 @@ html, body {
 .screen {
   width: 100vw;
   height: 100vh;
+  background-color: #a9dce3;
 }
 
 .screen .dice {
   width: 100vw;
   height: 90vh;
-  background-color: #a9dce3;
-  color: #7698de;
 }
 
 .screen .dice .die {
@@ -25,6 +24,7 @@ html, body {
   align-content: center;
   flex-direction: column;
   font-size: 50vh;
+  color: #7698de;
 }
 
 .screen .options {
