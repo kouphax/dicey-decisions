@@ -2,7 +2,7 @@
   "name": "dicey-dash",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "source": "src/index.html",
   "scripts": {
     "start": "npx parcel src/index.html",
     "build": "npx parcel build src/index.html"
