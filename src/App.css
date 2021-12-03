@@ -12,7 +12,7 @@ html, body {
 
 .screen .dice {
   width: 100vw;
-  height: 100vh;
+  height: 90vh;
   background-color: #a9dce3;
   color: #7698de;
 }
@@ -27,10 +27,8 @@ html, body {
   font-size: 50vh;
 }
 
-/*
 .screen .options {
   width: 100vw;
   height: 100vh;
   background-color: black;
 }
-*/
