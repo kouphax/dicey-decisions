@@ -40,6 +40,14 @@ function historyReducer(history: History, action: Action): History {
     }
 }
 
+function Dice({dice}) {
+    return <>
+        {
+            dice.map((die, idx) => <div className="die" key={`die-${idx}`}>{die.face}</div>)
+        }
+    </>
+}
+
 export function App() {
     const [state, dispatch] = useReducer(historyReducer, {}, () => {
         const value: string = window.localStorage.getItem("dicey-decisions");
@@ -57,51 +65,66 @@ export function App() {
         R.values,
         R.sortBy(R.prop("date")))(state);
 
-    if (!state[today]) {
-        return (
-            <>
-                <h1>
-                    <button
-                        onClick={() =>
-                            dispatch({
-                                type: "add",
-                                dice: [dieStream.next().value, dieStream.next().value],
-                                date: today,
-                            })
-                        }
-                    >
-                        Roll for the day
-                    </button>
-                </h1>
-                {
-                    previous.map(({dice, date}) => (
-                        <div key={date}>
-                            <h2>{dice.map((d) => d.face).join(" ")}</h2>
-                        </div>
-                    ))
-                }
-
-            </>
-        );
-    } else {
-        const renderDice = R.pipe(
-            R.path([today, "dice"]),
-            R.map(R.prop("face")),
-            R.join(" ")
-        );
-        return (
-            <>
-                <h1>{renderDice(state)}</h1>
-
-                {
-                    previous.map(({dice, date}) => (
-                        <div key={date}>
-                            <h2>{dice.map((d) => d.face).join(" ")}</h2>
-                        </div>
-                    ))
-                }
-
-            </>
-        );
+    if(!state[today]) {
+        dispatch({
+            type: "add",
+            dice: [dieStream.next().value, dieStream.next().value],
+            date: today,
+        })
     }
+
+    return <div className="screen">
+        <div className="dice">
+            {
+                !!state[today] && <Dice dice={state[today].dice}/>
+            }
+        </div>
+    </div>
+    //
+    // if (!state[today]) {
+    //     return (
+    //         <>
+    //             <h1>
+    //                 <button
+    //                     onClick={() =>
+    //                         dispatch({
+    //                             type: "add",
+    //                             dice: [dieStream.next().value, dieStream.next().value],
+    //                             date: today,
+    //                         })
+    //                     }
+    //                 >
+    //                     Roll for the day
+    //                 </button>
+    //             </h1>
+    //             {
+    //                 previous.map(({dice, date}) => (
+    //                     <div key={date}>
+    //                         <h2>{dice.map((d) => d.face).join(" ")}</h2>
+    //                     </div>
+    //                 ))
+    //             }
+    //         </>
+    //     );
+    // } else {
+    //     const renderDice = R.pipe(
+    //         R.path([today, "dice"]),
+    //         R.map(R.prop("face")),
+    //         R.join(" ")
+    //     );
+    //     return (
+    //         <>
+    //             <h1>{renderDice(state)}</h1>
+    //
+    //             {
+    //                 previous.map(({dice, date}) => (
+    //                     <div key={date}>
+    //                         <h2>{dice.map((d) => d.face).join(" ")}</h2>
+    //                     </div>
+    //                 ))
+    //             }
+    //
+    //         </>
+    //     );
+    // }
 }
