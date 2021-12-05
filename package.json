@@ -19,6 +19,8 @@
   "dependencies": {
     "ramda": "^0.27.1",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-swipeable": "^6.2.0",
+    "swiped-events": "^1.1.6"
   }
 }

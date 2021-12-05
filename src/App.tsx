@@ -1,6 +1,7 @@
 import "./App.css";
-import {useEffect, useReducer} from "react";
+import {useEffect, useReducer, useState} from "react";
 import * as R from "ramda";
+import {useSwipeable} from "react-swipeable";
 
 // == TYPES ========================================================================================
 type Die = {
@@ -8,7 +9,10 @@ type Die = {
     face: string;
 };
 
-type Action = { type: "add" } & HistoryEntry;
+type Action =
+    | { type: "add" } & HistoryEntry
+    | { type: "next", date: string }
+    | { type: "previous", date: string };
 
 type HistoryEntry = {
     dice: Die[];
@@ -17,27 +21,60 @@ type HistoryEntry = {
 
 type History = { [key: string]: HistoryEntry };
 
+type State = {
+    current: HistoryEntry;
+    history: History;
+}
+
 const dieStream = (function* dieGenerator(): Generator<Die> {
-    const faces: Die[] = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"].map((face, index) => ({
-        face,
-        value: index + 1,
-    }));
+    const faces: Die[] = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
+        .map((face, index) => ({
+            face,
+            value: index + 1,
+        }));
 
     while (true) {
         yield faces[Math.floor(Math.random() * faces.length)];
     }
 })();
 
-function historyReducer(history: History, action: Action): History {
+function historyReducer(state: State, action: Action): State {
     switch (action.type) {
         case "add":
+            const entry = {
+                dice: action.dice,
+                date: action.date,
+            }
+
             return {
-                ...history,
-                [action.date]: {dice: action.dice, date: action.date},
+                ...state,
+                current: entry,
+                history: {
+                    ...state.history,
+                    [action.date]: entry,
+                },
             };
-        default:
-            return history;
+        case "next":
+            const next = nextDate(action.date, state.history);
+            if(next != undefined) {
+                return {
+                    ...state,
+                    current: next,
+                };
+            }
+            break;
+        case "previous":
+            const previous = previousDate(action.date, state.history);
+            if(previous != undefined) {
+                return {
+                    ...state,
+                    current: previous,
+                };
+            }
+            break;
+
     }
+    return state;
 }
 
 function Dice({dice}) {
@@ -48,83 +85,71 @@ function Dice({dice}) {
     </>
 }
 
+function nextDate(date: string, history: History): HistoryEntry {
+
+    const dates = R.pipe(R.keys, R.sortBy(R.identity))(history);
+    const idx = R.findIndex(R.equals(date))(dates)
+
+    if(idx === -1 || idx === dates.length - 1) {
+        return undefined;
+    }
+
+    return history[dates[R.inc(idx)]]
+}
+
+function previousDate(date: string, history: History): HistoryEntry {
+
+    const dates = R.pipe(R.keys, R.sortBy(R.identity))(history);
+    const idx = R.findIndex(R.equals(date))(dates)
+
+    if(idx === -1 || idx === 0) {
+        return undefined;
+    }
+
+    return history[dates[R.dec(idx)]]
+}
+
 export function App() {
     const [state, dispatch] = useReducer(historyReducer, {}, () => {
         const value: string = window.localStorage.getItem("dicey-decisions");
-        return value ? JSON.parse(value) : {};
+        return value ? JSON.parse(value) : { history: {} };
     });
-
-    useEffect(() => {
-        window.localStorage.setItem("dicey-decisions", JSON.stringify(state));
-    }, [state]);
 
     const today = new Date().toISOString().slice(0, 10);
 
-    const previous: HistoryEntry[] = R.pipe(
-        R.dissoc(today),
-        R.values,
-        R.sortBy(R.prop("date")))(state);
+    useEffect(() => {
+        window.localStorage.setItem("dicey-decisions", JSON.stringify({
+            ...state,
+            current: state.history[today]
+        }));
+    }, [state]);
 
-    if(!state[today]) {
+    if(!state.history[today]) {
         dispatch({
             type: "add",
-            dice: [dieStream.next().value, dieStream.next().value],
+            dice: R.times(() => dieStream.next().value, 2),
             date: today,
         })
     }
 
-    return <div className="screen">
+    const handlers = useSwipeable({
+        onSwipedLeft: () => {
+            dispatch({
+                type: "next",
+                date: state.current.date,
+            })
+        },
+        onSwipedRight: () => {
+            dispatch({
+                type: "previous",
+                date: state.current.date,
+            })
+        },
+    });
+
+    return <div {...handlers} className="screen">
         <div className="dice">
-            {
-                !!state[today] && <Dice dice={state[today].dice}/>
-            }
+            { !!state.current && <Dice dice={state.current.dice}/> }
         </div>
     </div>
-    //
-    // if (!state[today]) {
-    //     return (
-    //         <>
-    //             <h1>
-    //                 <button
-    //                     onClick={() =>
-    //                         dispatch({
-    //                             type: "add",
-    //                             dice: [dieStream.next().value, dieStream.next().value],
-    //                             date: today,
-    //                         })
-    //                     }
-    //                 >
-    //                     Roll for the day
-    //                 </button>
-    //             </h1>
-    //             {
-    //                 previous.map(({dice, date}) => (
-    //                     <div key={date}>
-    //                         <h2>{dice.map((d) => d.face).join(" ")}</h2>
-    //                     </div>
-    //                 ))
-    //             }
-    //         </>
-    //     );
-    // } else {
-    //     const renderDice = R.pipe(
-    //         R.path([today, "dice"]),
-    //         R.map(R.prop("face")),
-    //         R.join(" ")
-    //     );
-    //     return (
-    //         <>
-    //             <h1>{renderDice(state)}</h1>
-    //
-    //             {
-    //                 previous.map(({dice, date}) => (
-    //                     <div key={date}>
-    //                         <h2>{dice.map((d) => d.face).join(" ")}</h2>
-    //                     </div>
-    //                 ))
-    //             }
-    //
-    //         </>
-    //     );
-    // }
 }
