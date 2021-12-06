@@ -2,6 +2,7 @@ import "./App.css";
 import {useEffect, useReducer, useState} from "react";
 import * as R from "ramda";
 import {useSwipeable} from "react-swipeable";
+import {read} from "./storage";
 
 // == TYPES ========================================================================================
 type Die = {
@@ -78,11 +79,9 @@ function historyReducer(state: State, action: Action): State {
 }
 
 function Dice({dice}) {
-    return <>
-        {
-            dice.map((die, idx) => <div className="die" key={`die-${idx}`}>{die.face}</div>)
-        }
-    </>
+    return dice.map((die, idx) =>
+        <div className="die" key={`die-${idx}`}>{die.face}</div>
+    )
 }
 
 function nextDate(date: string, history: History): HistoryEntry {
@@ -110,10 +109,7 @@ function previousDate(date: string, history: History): HistoryEntry {
 }
 
 export function App() {
-    const [state, dispatch] = useReducer(historyReducer, {}, () => {
-        const value: string = window.localStorage.getItem("dicey-decisions");
-        return value ? JSON.parse(value) : { history: {} };
-    });
+    const [state, dispatch] = useReducer(historyReducer, {}, read);
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -135,19 +131,22 @@ export function App() {
     const handlers = useSwipeable({
         onSwipedLeft: () => {
             dispatch({
-                type: "next",
+                type: "previous",
                 date: state.current.date,
             })
         },
         onSwipedRight: () => {
             dispatch({
-                type: "previous",
+                type: "next",
                 date: state.current.date,
             })
         },
     });
 
     return <div {...handlers} className="screen">
+        <div className="date">
+            { !!state.current && state.current.date }
+        </div>
         <div className="dice">
             { !!state.current && <Dice dice={state.current.dice}/> }
         </div>

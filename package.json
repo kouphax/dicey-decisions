@@ -11,10 +11,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^27.0.3",
     "@types/ramda": "^0.27.58",
     "@types/react": "^17.0.37",
     "@types/react-dom": "^17.0.11",
-    "parcel": "^2.0.1"
+    "@types/sinon": "^10.0.6",
+    "jest": "^27.4.3",
+    "jest-localstorage-mock": "^2.4.18",
+    "parcel": "^2.0.1",
+    "sinon": "^12.0.1"
   },
   "dependencies": {
     "ramda": "^0.27.1",
@@ -22,5 +27,9 @@
     "react-dom": "^17.0.2",
     "react-swipeable": "^6.2.0",
     "swiped-events": "^1.1.6"
+  },
+  "jest": {
+    "resetMocks": false,
+    "setupFiles": ["jest-localstorage-mock"]
   }
 }

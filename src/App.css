@@ -3,6 +3,8 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
 }
 
 .screen {
@@ -13,7 +15,18 @@ html, body {
 
 .screen .dice {
   width: 100vw;
-  height: 90vh;
+  height: 80vh;
+}
+
+.screen .date {
+  height: 10vh;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-content: end;
+  flex-direction: column;
+  font-size: 5vh;
+  color: #7698de;
 }
 
 .screen .dice .die {
